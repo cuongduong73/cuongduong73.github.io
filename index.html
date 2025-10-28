@@ -1,27 +1,28 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anki Data Manager</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <!-- MathJax Configuration -->
     <script>
-    MathJax = {
-        tex: {
-        inlineMath: [['\\(', '\\)']],
-        displayMath: [['\\[', '\\]']],
-        packages: {'[+]': ['mhchem']}  // Thêm package mhchem cho công thức hóa học
-        },
-        loader: {load: ['[tex]/mhchem']}
-    };
+        MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                packages: { '[+]': ['mhchem'] }
+            },
+            loader: { load: ['[tex]/mhchem'] }
+        };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <div class="container">
+    <div id="mainView" class="container">
         <div class="text-center mb-4">
             <h1 class="text-white fw-bold"><i class="fas fa-layer-group"></i> Anki Data Manager</h1>
             <p class="text-white">Quản lý dữ liệu từ Anki thông qua AnkiConnect</p>
@@ -46,32 +47,184 @@
                 <i class="fas fa-database"></i> Danh Sách Bộ Dữ Liệu
             </div>
             <div class="card-body">
-                <div id="datasetTableContainer">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tên Bộ Dữ Liệu</th>
-                                    <th>Loại</th>
-                                    <th>Số Lượng Thẻ</th>
-                                    <th>Hành Động</th>
-                                </tr>
-                            </thead>
-                            <tbody id="datasetTableBody">
-                                <tr>
-                                    <td colspan="4" class="text-center text-muted">
-                                        <i class="fas fa-inbox"></i> Chưa có bộ dữ liệu nào
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tên Bộ Dữ Liệu</th>
+                                <th>Loại</th>
+                                <th>Số Lượng Thẻ</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="datasetTableBody"></tbody>
+                    </table>
+                </div>
+                <button class="btn btn-primary btn-lg mt-2" id="createBtn">
+                    <i class="fas fa-square-plus"></i> Tạo bài kiểm tra
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Creation View -->
+    <div id="quizCreationView" class="container" style="display: none;">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-plus-circle"></i> Tạo Bài Kiểm Tra</span>
+                <button class="btn btn-light btn-sm" id="backToMainBtn">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </button>
+            </div>
+            <div class="card-body">
+                <form id="quizCreationForm">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Thời gian làm bài (phút)</label>
+                        <input type="number" class="form-control" id="quizDuration" min="1" value="30" required>
                     </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Chọn bộ dữ liệu</label>
+                        <div id="datasetSelection" class="border rounded p-3"></div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">True/False Statement</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">Số câu</span>
+                                <input type="number" class="form-control question-count"
+                                    data-type="True/False Statement" min="0" value="0">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">Điểm</span>
+                                <input type="number" class="form-control question-points"
+                                    data-type="True/False Statement" min="0" step="0.5" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Multiple Choices</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">Số câu</span>
+                                <input type="number" class="form-control question-count" data-type="Multiple Choices"
+                                    min="0" value="0">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">Điểm</span>
+                                <input type="number" class="form-control question-points" data-type="Multiple Choices"
+                                    min="0" step="0.5" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">True/False</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">Số câu</span>
+                                <input type="number" class="form-control question-count" data-type="True/False" min="0"
+                                    value="0">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">Điểm</span>
+                                <input type="number" class="form-control question-points" data-type="True/False" min="0"
+                                    step="0.5" value="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Short Answer</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">Số câu</span>
+                                <input type="number" class="form-control question-count" data-type="Short Answer"
+                                    min="0" value="0">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">Điểm</span>
+                                <input type="number" class="form-control question-points" data-type="Short Answer"
+                                    min="0" step="0.5" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info" id="pointsValidation">
+                        Tổng điểm: <strong id="totalPoints">0</strong> / 10
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-check"></i> Tạo Bài Kiểm Tra
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Taking View -->
+    <div id="quizTakingView" style="display: none;">
+        <div class="timer" id="timer">00:00</div>
+        <div class="container">
+            <div class="quiz-container">
+                <h2 class="text-center mb-4">Bài Kiểm Tra</h2>
+
+                <div class="question-nav" id="questionNav"></div>
+
+                <div id="questionsContainer"></div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-secondary" id="prevBtn">
+                        <i class="fas fa-arrow-left"></i> Câu trước
+                    </button>
+                    <button class="btn btn-danger btn-lg" id="submitBtn">
+                        <i class="fas fa-check-circle"></i> Nộp bài
+                    </button>
+                    <button class="btn btn-secondary" id="nextBtn">
+                        Câu sau <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Import Data -->
+    <!-- Quiz Result View -->
+    <div id="quizResultView" class="container" style="display: none;">
+        <div class="result-summary text-center">
+            <h2><i class="fas fa-trophy"></i> Kết Quả Bài Kiểm Tra</h2>
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <h3 id="finalScore">0/10</h3>
+                    <p>Điểm số</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 id="correctCount">0</h3>
+                    <p>Câu đúng</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 id="incorrectCount">0</h3>
+                    <p>Câu sai</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 id="timeSpent">00:00</h3>
+                    <p>Thời gian</p>
+                </div>
+            </div>
+            <button class="btn btn-light btn-lg mt-3" id="backToMainFromResultBtn">
+                <i class="fas fa-home"></i> Về trang chủ
+            </button>
+            <button class="btn btn-success btn-lg mt-3 ms-2" id="exportQuizBtn">
+                <i class="fas fa-download"></i> Xuất đề thi
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list"></i> Chi Tiết Bài Làm
+            </div>
+            <div class="card-body">
+                <div id="resultsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
     <div class="modal fade" id="importModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -81,9 +234,7 @@
                 </div>
                 <div class="modal-body">
                     <div id="loadingIndicator" class="text-center" style="display: none;">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Đang tải...</span>
-                        </div>
+                        <div class="spinner-border text-primary"></div>
                         <p class="mt-2">Đang kết nối với Anki...</p>
                     </div>
                     <form id="importForm" style="display: none;">
@@ -93,20 +244,15 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Deck</label>
-                            <select class="form-select" id="deckSelect" required>
-                                <option value="">-- Chọn Deck --</option>
-                            </select>
+                            <select class="form-select" id="deckSelect" required></select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Note Type</label>
-                            <select class="form-select" id="noteTypeSelect" required>
-                                <option value="">-- Chọn Note Type --</option>
-                            </select>
+                            <select class="form-select" id="noteTypeSelect" required></select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Tags (Ctrl + Click để chọn nhiều)</label>
-                            <select class="form-select tag-select" id="tagsSelect" multiple>
-                            </select>
+                            <select class="form-select tag-select" id="tagsSelect" multiple></select>
                             <small class="text-muted">Không chọn tag = lấy tất cả thẻ</small>
                         </div>
                         <div class="mb-3">
@@ -115,7 +261,7 @@
                                 <option value="">-- Chọn Loại --</option>
                                 <option value="Multiple Choices">Multiple Choices</option>
                                 <option value="True/False">True/False</option>
-                                <option value="Flashcard">Flashcard</option>
+                                <option value="True/False Statement">True/False Statement</option>
                                 <option value="Short Answer">Short Answer</option>
                             </select>
                         </div>
@@ -131,7 +277,6 @@
         </div>
     </div>
 
-    <!-- Modal: View Details -->
     <div class="modal fade" id="detailModal" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -146,16 +291,26 @@
         </div>
     </div>
 
-    <!-- Modal: Cards Details -->
-    <div class="modal fade" id="cardsModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
+    <!-- Export Quiz Modal -->
+    <div class="modal fade" id="exportQuizModal" tabindex="-1">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-info-circle"></i> Chi Tiết Bộ Dữ Liệu</h5>
+                    <h5 class="modal-title"><i class="fas fa-download"></i> Xuất Đề Thi</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="detailContent"></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên đề thi</label>
+                        <input type="text" class="form-control" id="exportQuizName"
+                            placeholder="VD: Kiểm tra Toán học - Chương 1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="confirmExportBtn">
+                        <i class="fas fa-download"></i> Xuất file
+                    </button>
                 </div>
             </div>
         </div>
@@ -164,4 +319,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="anki_api.js"></script>
 </body>
+
 </html>
