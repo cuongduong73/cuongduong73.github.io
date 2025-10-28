@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anki Data Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- MathJax Configuration -->
+    <script>
+    MathJax = {
+        tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        packages: {'[+]': ['mhchem']}  // Thêm package mhchem cho công thức hóa học
+        },
+        loader: {load: ['[tex]/mhchem']}
+    };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center mb-4">
+            <h1 class="text-white fw-bold"><i class="fas fa-layer-group"></i> Anki Data Manager</h1>
+            <p class="text-white">Quản lý dữ liệu từ Anki thông qua AnkiConnect</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-download"></i> Nhập Dữ Liệu
+            </div>
+            <div class="card-body">
+                <div id="connectionStatus" class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Đảm bảo Anki đang chạy và AnkiConnect đã được cài đặt.
+                </div>
+                <button class="btn btn-primary btn-lg" id="importBtn">
+                    <i class="fas fa-file-import"></i> Nhập Dữ Liệu Từ Anki
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-database"></i> Danh Sách Bộ Dữ Liệu
+            </div>
+            <div class="card-body">
+                <div id="datasetTableContainer">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tên Bộ Dữ Liệu</th>
+                                    <th>Loại</th>
+                                    <th>Số Lượng Thẻ</th>
+                                    <th>Hành Động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="datasetTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">
+                                        <i class="fas fa-inbox"></i> Chưa có bộ dữ liệu nào
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Import Data -->
+    <div class="modal fade" id="importModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-file-import"></i> Nhập Dữ Liệu Từ Anki</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="loadingIndicator" class="text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                        <p class="mt-2">Đang kết nối với Anki...</p>
+                    </div>
+                    <form id="importForm" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên Bộ Dữ Liệu</label>
+                            <input type="text" class="form-control" id="datasetName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Deck</label>
+                            <select class="form-select" id="deckSelect" required>
+                                <option value="">-- Chọn Deck --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Note Type</label>
+                            <select class="form-select" id="noteTypeSelect" required>
+                                <option value="">-- Chọn Note Type --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tags (Ctrl + Click để chọn nhiều)</label>
+                            <select class="form-select tag-select" id="tagsSelect" multiple>
+                            </select>
+                            <small class="text-muted">Không chọn tag = lấy tất cả thẻ</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Loại Bộ Dữ Liệu</label>
+                            <select class="form-select" id="datasetType" required>
+                                <option value="">-- Chọn Loại --</option>
+                                <option value="Multiple Choices">Multiple Choices</option>
+                                <option value="True/False">True/False</option>
+                                <option value="Flashcard">Flashcard</option>
+                                <option value="Short Answer">Short Answer</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="saveDatasetBtn" style="display: none;">
+                        <i class="fas fa-save"></i> Lưu Bộ Dữ Liệu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: View Details -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-info-circle"></i> Chi Tiết Bộ Dữ Liệu</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="detailContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Cards Details -->
+    <div class="modal fade" id="cardsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-info-circle"></i> Chi Tiết Bộ Dữ Liệu</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="detailContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="anki_api.js"></script>
+</body>
+</html>
