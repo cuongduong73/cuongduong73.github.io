@@ -785,6 +785,7 @@ function submitQuiz() {
             }
             if (numCorrect === q.statements.length) {
                 isCorrect = true;
+                points = q.points;
             } else {
                 isCorrect = false;
                 if (numCorrect === q.statements.length - 1 && numCorrect > 0) {
