@@ -63,6 +63,21 @@
                 <button class="btn btn-primary btn-lg mt-2" id="createBtn">
                     <i class="fas fa-square-plus"></i> Tạo bài kiểm tra
                 </button>
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-outline-primary" id="exportDataBtn">
+                        <i class="fas fa-download"></i> Xuất backup
+                    </button>
+                    <button class="btn btn-outline-primary" id="importDataBtn">
+                        <i class="fas fa-upload"></i> Nhập backup
+                    </button>
+                    <button class="btn btn-outline-info" id="statsBtn">
+                        <i class="fas fa-chart-bar"></i> Thống kê
+                    </button>
+                    <button class="btn btn-outline-danger" id="clearAllBtn">
+                        <i class="fas fa-trash"></i> Xóa DB
+                    </button>
+                </div>
+                <input type="file" id="importFileInput" accept=".json" style="display:none">
             </div>
         </div>
     </div>
@@ -209,7 +224,7 @@
             <button class="btn btn-light btn-lg mt-3" id="backToMainFromResultBtn">
                 <i class="fas fa-home"></i> Về trang chủ
             </button>
-            <button class="btn btn-success btn-lg mt-3 ms-2" id="exportQuizBtn">
+            <button class="btn btn-light btn-lg mt-3 ms-2" id="exportQuizBtn">
                 <i class="fas fa-download"></i> Xuất đề thi
             </button>
         </div>
@@ -317,6 +332,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="storage.js"></script>
     <script src="anki_api.js"></script>
 </body>
 

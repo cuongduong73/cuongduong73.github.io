@@ -39,12 +39,19 @@ async function checkAnkiConnection() {
     } catch (error) {
         ankiConnected = false;
         statusDiv.innerHTML = `
-                    <i class="fas fa-exclamation-circle"></i> 
-                    <strong>Không thể kết nối với Anki!</strong><br>
-                    <small>Đảm bảo Anki đang chạy và AnkiConnect đã được cài đặt</small>
-                `;
+            <i class="fas fa-exclamation-circle"></i> 
+            <strong>Không thể kết nối với Anki!</strong><br>
+            <small>Đảm bảo Anki đang chạy và AnkiConnect đã được cài đặt</small>
+            <br><br>
+            <button class="btn btn-warning btn-sm mt-2" id="retryConnectionBtn">
+                <i class="fas fa-redo"></i> Thử lại
+            </button>
+        `;
         statusDiv.className = 'alert alert-danger';
         importBtn.disabled = true;
+        
+        // Thêm event listener cho nút thử lại
+        document.getElementById('retryConnectionBtn').addEventListener('click', checkAnkiConnection);
     }
 }
 
@@ -140,6 +147,7 @@ document.getElementById('saveDatasetBtn').addEventListener('click', async () => 
         };
 
         datasets.push(dataset);
+        await storageManager.save(datasets);
         renderDatasets();
 
         bootstrap.Modal.getInstance(document.getElementById('importModal')).hide();
@@ -293,9 +301,10 @@ function viewCards(id) {
     modal.show();
 }
 
-function deleteDataset(id) {
+async function deleteDataset(id) {
     if (!confirm('Bạn có chắc chắn muốn xóa bộ dữ liệu này?')) return;
     datasets = datasets.filter(d => d.id !== id);
+    await storageManager.save(datasets);
     renderDatasets();
 }
 
@@ -383,11 +392,13 @@ document.getElementById('quizCreationForm').addEventListener('submit', (e) => {
 });
 
 function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
+    // Tạo bản sao của array để không thay đổi array gốc
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]]; // Hoán đổi vị trí
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
     }
-    return array;
+    return newArray;
 }
 
 // Shuffle choices và cập nhật answer index
@@ -428,11 +439,9 @@ function createQuiz(duration, selectedDatasetIds, questionTypes) {
 
         // Gather all cards of this type
         const allCards = relevantDatasets.flatMap(d => d.notesInfo.map(card => ({ ...card, type })));
-
+        const shuffled = shuffleArray(allCards);
         if (type === 'True/False Statement') {
-            // Create TF statement questions (4 statements per question)
             const numQuestions = config.count;
-            const shuffled = shuffleArray(allCards);
             for (let i = 0; i < numQuestions; i++) {
                 const statements = [];
                 for (let j = TF_STATEMENTS_PER_QUESTION*i; j < TF_STATEMENTS_PER_QUESTION*i+4 && j < shuffled.length; j++) {
@@ -448,7 +457,7 @@ function createQuiz(duration, selectedDatasetIds, questionTypes) {
             }
         } else if (type === 'Multiple Choices') {
             // select random cards for multiple choice
-            const selectedCards = shuffleArray(allCards).slice(0, config.count);
+            const selectedCards = shuffled.slice(0, config.count);
             selectedCards.forEach(card => {
                 allQuestions.push({
                     type: 'Multiple Choices',
@@ -461,7 +470,7 @@ function createQuiz(duration, selectedDatasetIds, questionTypes) {
                 });
             });
         } else if (type === 'True/False') {
-            const selectedCards = shuffleArray(allCards).slice(0, config.count);
+            const selectedCards = shuffled.slice(0, config.count);
             selectedCards.forEach(card => {
                 const correctAnswers = parseCorrectAnswers(card.answer, card.choices.length);
                 const statements = card.choices.map((choice, idx) => ({
@@ -479,7 +488,7 @@ function createQuiz(duration, selectedDatasetIds, questionTypes) {
                 });
             });
         } else if (type === 'Short Answer') {
-            const selectedCards = shuffleArray(allCards).slice(0, config.count);
+            const selectedCards = shuffled.slice(0, config.count);
             selectedCards.forEach(card => {
                 allQuestions.push({
                     type: 'Short Answer',
@@ -966,7 +975,15 @@ function openAnkiNote(element) {
 
 // Initialize
 renderDatasets();
-window.addEventListener('DOMContentLoaded', checkAnkiConnection);
+// Initialize với IndexedDB
+async function initApp() {
+    await storageManager.init();
+    datasets = await storageManager.load();
+    renderDatasets();
+    checkAnkiConnection();
+}
+
+window.addEventListener('DOMContentLoaded', initApp);
 
 // Export Quiz to Static HTML
 document.getElementById('exportQuizBtn').addEventListener('click', () => {
@@ -984,6 +1001,41 @@ document.getElementById('confirmExportBtn').addEventListener('click', () => {
     
     exportQuizToHTML(quizName);
     bootstrap.Modal.getInstance(document.getElementById('exportQuizModal')).hide();
+});
+
+// Backup/Restore handlers
+document.getElementById('exportDataBtn').addEventListener('click', () => {
+    storageManager.exportToFile();
+});
+
+document.getElementById('importDataBtn').addEventListener('click', () => {
+    document.getElementById('importFileInput').click();
+});
+
+document.getElementById('importFileInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        datasets = await storageManager.importFromFile(file);
+        renderDatasets();
+        e.target.value = '';
+    }
+});
+
+document.getElementById('statsBtn').addEventListener('click', async () => {
+    const stats = await storageManager.getStats();
+    alert(`📊 Thống kê dữ liệu:
+    
+🗂️ Số datasets: ${stats.count}
+📇 Tổng số thẻ: ${stats.totalCards}
+💾 Kích thước: ${stats.sizeFormatted}
+    `);
+});
+
+document.getElementById('clearAllBtn').addEventListener('click', async () => {
+    if (await storageManager.clearAll()) {
+        datasets = [];
+        renderDatasets();
+    }
 });
 
 function exportQuizToHTML(quizName) {
@@ -1034,7 +1086,27 @@ function generateStaticQuizHTML(quizName) {
     <title>${quizName}</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    
+    <!-- MathJax Configuration -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\\\(', '\\\\)']],
+                displayMath: [['\\\\[', '\\\\]']],
+                packages: {'[+]': ['mhchem']}
+            },
+            loader: {
+                load: ['[tex]/mhchem']
+            },
+            startup: {
+                pageReady: () => {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
     <style>
         ${getStaticQuizCSS()}
     </style>
@@ -1122,6 +1194,22 @@ function generateStaticQuizHTML(quizName) {
         function reviewQuiz() {
             document.getElementById('resultModal').style.display = 'none';
             window.scrollTo(0, 0);
+        }
+        
+        // Hàm typesetMath để render lại MathJax
+        function typesetMath(element) {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                return MathJax.typesetPromise([element]).catch((err) => {
+                    console.error('MathJax typeset error:', err);
+                });
+            } else if (window.MathJax && window.MathJax.Hub) {
+                // Fallback cho MathJax 2.x
+                return new Promise((resolve) => {
+                    MathJax.Hub.Queue(['Typeset', MathJax.Hub, element]);
+                    MathJax.Hub.Queue(resolve);
+                });
+            }
+            return Promise.resolve();
         }
         
         ${getStaticQuizJS()}
@@ -1498,9 +1586,10 @@ function getStaticQuizJS() {
 
             document.getElementById('questionsContainer').innerHTML = questionsHTML;
 
-            if (window.MathJax) {
-                MathJax.typesetPromise([document.getElementById('questionsContainer')]).catch(err => console.log('MathJax error:', err));
-            }
+            // Render MathJax sau khi thêm HTML
+            typesetMath(document.getElementById('questionsContainer')).then(() => {
+                console.log('Questions rendered with MathJax');
+            });
 
             setupEventListeners();
         }
@@ -1537,6 +1626,34 @@ function getStaticQuizJS() {
         }
 
         function init() {
+            // Đợi MathJax load xong
+            if (window.MathJax) {
+                if (MathJax.startup && MathJax.startup.promise) {
+                    MathJax.startup.promise.then(() => {
+                        console.log('MathJax loaded successfully');
+                        startQuiz();
+                    }).catch((err) => {
+                        console.error('MathJax startup error:', err);
+                        startQuiz();
+                    });
+                } else {
+                    // Fallback: đợi 1 giây
+                    setTimeout(startQuiz, 1000);
+                }
+            } else {
+                // Nếu MathJax chưa load, đợi và thử lại
+                let retries = 0;
+                const checkMathJax = setInterval(() => {
+                    retries++;
+                    if (window.MathJax || retries > 10) {
+                        clearInterval(checkMathJax);
+                        setTimeout(startQuiz, 500);
+                    }
+                }, 500);
+            }
+        }
+        
+        function startQuiz() {
             // Shuffle choices for new quiz
             currentQuestions = shuffleChoices(QUIZ_DATA);
             
@@ -1740,7 +1857,6 @@ function getStaticQuizJS() {
                         }
                     });
                     
-                    // Tính điểm (giữ nguyên)
                     if (correctStatements === totalStatements) {
                         isCorrect = true;
                         pointsEarned = totalPoints;
@@ -1841,11 +1957,17 @@ function getStaticQuizJS() {
                 el.style.pointerEvents = 'none';
             });
             
-            if (window.MathJax) {
-                MathJax.typesetPromise().catch(err => console.log('MathJax error:', err));
-            }
+            // Render lại MathJax cho các phần mới hiển thị (extra content)
+            typesetMath(document.body).then(() => {
+                console.log('MathJax rerendered after submit');
+            });
         }
         
-        init();
+        // Bắt đầu khi DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     `;
 }
