@@ -115,7 +115,6 @@ class QuizManager {
      */
     submitQuiz() {
         const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
-        console.log(timeSpent);
         let correctCount = 0;
         let totalScore = 0;
         const results = this.currentQuiz.questions.map((questionData, i) => {

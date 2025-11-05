@@ -442,7 +442,6 @@ function setupQuizResultEvents() {
 
     // 🆕 Export quiz button - Hiển thị modal
     EventManager.bind('#exportQuizBtn', 'click', () => {
-        console.log("click");
         const modal = new bootstrap.Modal(document.getElementById('exportQuizModal'));
         modal.show();
         
@@ -584,7 +583,7 @@ function setupDefinitionMapping() {
 window.openAnkiNote = function (element) {
     const noteId = element.id;
     if (!noteId || noteId === '0') {
-        console.log('Không có note ID');
+        // console.log('Không có note ID');
         return;
     }
 

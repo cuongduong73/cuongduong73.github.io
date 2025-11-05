@@ -169,9 +169,9 @@ function loadQuizFromJSON(quizData) {
     // Load quiz vào quizManager
     quizManager.currentQuiz = quiz
 
-    console.log('Loaded quiz:', name);
-    console.log('Duration:', quiz.duration, 'seconds');
-    console.log('Questions:', quiz.questions.length);
+    // console.log('Loaded quiz:', name);
+    // console.log('Duration:', quiz.duration, 'seconds');
+    // console.log('Questions:', quiz.questions.length);
 }
 
 // === Start Quiz ===
@@ -375,7 +375,7 @@ function retryQuiz() {
 window.openAnkiNote = function (element) {
     const noteId = element.id;
     if (!noteId || noteId === '0') {
-        console.log('Không có note ID');
+        // console.log('Không có note ID');
         return;
     }
 
