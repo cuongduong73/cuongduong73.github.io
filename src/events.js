@@ -82,6 +82,7 @@ async function on_importBtn() {
         ImportModalUI.fillSelect('noteTypeSelect', noteTypes, '-- Chọn Note Type --');
         ImportModalUI.fillSelect('tagsSelect', tags);
         ImportModalUI.reset();
+        DefinitionMappingUI.reset();
         DefinitionMappingUI.display('');
         ImportModalUI.showForm();
     } catch (error) {
@@ -112,8 +113,12 @@ async function on_saveDatasetBtn() {
 
         // Get metadata for Definition type
         const metadata = formData.type === DATASET_TYPES.DEFINITION ? {
-            forwardQuestionTemplate: document.getElementById('forwardQuestionTemplate').value.trim() || DEFAULT_DEFINITION_TEMPLATE.forward,
-            reverseQuestionTemplate: document.getElementById('reverseQuestionTemplate').value.trim() || DEFAULT_DEFINITION_TEMPLATE.reverse
+        forwardQuestionTemplate: document.getElementById('forwardQuestionCheck').checked 
+            ? (document.getElementById('forwardQuestionTemplate').value.trim() || DEFAULT_DEFINITION_TEMPLATE.forward)
+            : null,
+        reverseQuestionTemplate: document.getElementById('reverseQuestionCheck').checked
+            ? (document.getElementById('reverseQuestionTemplate').value.trim() || DEFAULT_DEFINITION_TEMPLATE.reverse)
+            : null
         } : {};
 
         const dataset = await datasetManager.create({

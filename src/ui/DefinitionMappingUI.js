@@ -14,6 +14,22 @@ export const DefinitionMappingUI = {
                 await this.loadFieldsForNoteType(e.target.value);
             }
         });
+        
+        // Enable/disable forward question input
+        document.getElementById('forwardQuestionCheck').addEventListener('change', (e) => {
+            document.getElementById('forwardQuestionTemplate').disabled = !e.target.checked;
+            if (!e.target.checked) {
+                document.getElementById('forwardQuestionTemplate').value = '';
+            }
+        });
+        
+        // Enable/disable reverse question input
+        document.getElementById('reverseQuestionCheck').addEventListener('change', (e) => {
+            document.getElementById('reverseQuestionTemplate').disabled = !e.target.checked;
+            if (!e.target.checked) {
+                document.getElementById('reverseQuestionTemplate').value = '';
+            }
+        });
     },
 
     async display(value) {
@@ -47,5 +63,13 @@ export const DefinitionMappingUI = {
         } catch (error) {
             console.error('Lỗi khi load fields:', error);
         }
-    }
+    },
+    reset() {
+        document.getElementById('forwardQuestionCheck').checked = false;
+        document.getElementById('reverseQuestionCheck').checked = false;
+        document.getElementById('forwardQuestionTemplate').disabled = true;
+        document.getElementById('reverseQuestionTemplate').disabled = true;
+        document.getElementById('forwardQuestionTemplate').value = '';
+        document.getElementById('reverseQuestionTemplate').value = '';
+    },
 }

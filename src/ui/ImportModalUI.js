@@ -71,16 +71,16 @@ export const ImportModalUI = {
         if (formData.type === DATASET_TYPES.DEFINITION) {
             const keywordField = document.getElementById('keywordFieldSelect').value;
             const definitionField = document.getElementById('definitionFieldSelect').value;
-            // const forwardQ = document.getElementById('forwardQuestionTemplate').value.trim();
-            // const reverseQ = document.getElementById('reverseQuestionTemplate').value.trim();
+            const forwardChecked = document.getElementById('forwardQuestionCheck').checked;
+            const reverseChecked = document.getElementById('reverseQuestionCheck').checked;
             
             if (!keywordField || !definitionField) {
                 throw new Error('Vui lòng chọn field cho Keyword và Definition!');
             }
             
-            // if (!forwardQ && !reverseQ) {
-            //     throw new Error('Vui lòng nhập ít nhất 1 loại câu hỏi (thuận hoặc nghịch)!');
-            // }
+            if (!forwardChecked && !reverseChecked) {
+                throw new Error('Vui lòng chọn ít nhất 1 loại câu hỏi (thuận hoặc nghịch)!');
+            }
         }
     }
 }

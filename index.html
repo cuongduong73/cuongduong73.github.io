@@ -329,18 +329,28 @@
                                 </select>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label">Câu hỏi thuận (tùy chọn)</label>
-                                <input type="text" class="form-control" id="forwardQuestionTemplate" 
-                                    placeholder="VD: Từ {keyword} có nghĩa là gì?">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="forwardQuestionCheck">
+                                    <label class="form-check-label fw-bold" for="forwardQuestionCheck">
+                                        Câu hỏi thuận
+                                    </label>
+                                </div>
+                                <input type="text" class="form-control mt-1" id="forwardQuestionTemplate" 
+                                    placeholder="VD: Từ {keyword} có nghĩa là gì?" disabled>
                                 <small class="text-muted">Dùng {keyword} để đánh dấu vị trí thay thế.</small>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label">Câu hỏi nghịch (tùy chọn)</label>
-                                <input type="text" class="form-control" id="reverseQuestionTemplate" 
-                                    placeholder="VD: Từ nào sau đây mang nghĩa {definition}?">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="reverseQuestionCheck">
+                                    <label class="form-check-label fw-bold" for="reverseQuestionCheck">
+                                        Câu hỏi nghịch
+                                    </label>
+                                </div>
+                                <input type="text" class="form-control mt-1" id="reverseQuestionTemplate" 
+                                    placeholder="VD: Từ nào sau đây mang nghĩa {definition}?" disabled>
                                 <small class="text-muted">Dùng {definition} để đánh dấu vị trí thay thế.</small>
                             </div>
-                            <small class="text-danger">* Để trống sẽ nhận giá trị mặc định.</small>
+                            <small class="text-danger">* Phải chọn ít nhất 1 loại câu hỏi. Để trống sẽ nhận giá trị mặc định.</small>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Loại Bộ Dữ Liệu</label>
