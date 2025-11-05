@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anki Data Manager</title>
+    <link rel="icon" type="image/x-icon" href="../ico/favicon.ico">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                packages: { '[+]': ['mhchem'] }
+            },
+            loader: { load: ['[tex]/mhchem'] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="mainNavbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-home"></i> Trang chủ
+            </a>
+            <!-- Timer trong navbar -->
+            <span class="navbar-text text-white ms-auto d-none" id="timer">
+                <i class="fas fa-clock me-2"></i>
+                <strong id="timerDisplay">00:00</strong>
+            </span>
+        </div>
+    </nav>
+
+    <!-- Hidden file input -->
+    <input type="file" id="importQuizFileInput" accept=".json" style="display: none;">
+
+    <!-- Welcome Screen -->
+    <div class="container mt-5 text-center" id="welcomeScreen">
+        <div class="quiz-container">
+            <h1 class="fw-bold mb-4">
+                <i class="fas fa-graduation-cap"></i> Hệ thống thi thử THPTQG
+            </h1>
+            <p class="lead text-muted mb-4">
+                Chọn file JSON để bắt đầu làm bài thi
+            </p>
+            <button class="btn btn-primary btn-lg" id="importQuizBtn">
+                <i class="fas fa-upload"></i> Tải đề thi lên
+            </button>
+        </div>
+    </div>
+
+    <!-- Quiz Taking View -->
+    <div id="quizTakingView" style="display: none;">
+        <div class="container py-5">
+            <div class="quiz-container">
+                <div class="text-center mb-4">
+                    <h1 class="fw-bold"><span id="test">Đề thi</span></h1>
+                    <p class="text-center text-muted mb-4">
+                        <i class="fas fa-clock"></i> <span id="duration">30</span> phút | 
+                        <i class="fas fa-list"></i> <span id="questionCount">0</span> câu hỏi
+                    </p>
+                </div>
+
+                <div class="question-nav" id="questionNav"></div>
+
+                <div id="questionsContainer"></div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-secondary" id="prevBtn">
+                        <i class="fas fa-arrow-left"></i> Câu trước
+                    </button>
+                    <button class="btn btn-primary btn-lg" id="submitBtn">
+                        <i class="fas fa-check-circle"></i> Nộp bài
+                    </button>
+                    <button class="btn btn-secondary" id="nextBtn">
+                        Câu sau <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Result View -->
+    <div id="quizResultView" class="container py-5" style="display: none;">
+        <div class="result-summary text-center">
+            <h2><i class="fas fa-trophy"></i> Kết Quả Bài Kiểm Tra</h2>
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <h3 id="finalScore">0/10</h3>
+                    <p>Điểm số</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 id="correctCount">0</h3>
+                    <p>Câu đúng</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 id="incorrectCount">0</h3>
+                    <p>Câu sai</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 id="timeSpent">00:00</h3>
+                    <p>Thời gian</p>
+                </div>
+            </div>
+            <button class="btn btn-light btn-lg mt-3 ms-2" id="retryQuizBtn">
+                <i class="fas fa-redo"></i> Làm lại
+            </button>
+            <a class="btn btn-light btn-lg mt-3 ms-2" href="./index.html">
+                <i class="fa-solid fa-pen-to-square"></i> Đề khác
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list"></i> Chi Tiết Bài Làm
+            </div>
+            <div class="card-body">
+                <!-- filter buttons -->
+                <div class="btn-group mb-3 w-100" role="group" id="resultFilterButtons">
+                    <button type="button" class="btn btn-outline-primary active" data-filter="all">
+                        <i class="fas fa-list"></i> Tất cả
+                    </button>
+                    <button type="button" class="btn btn-outline-success" data-filter="correct">
+                        <i class="fas fa-check-circle"></i> Câu đúng
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" data-filter="incorrect">
+                        <i class="fas fa-times-circle"></i> Câu sai
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-filter="unanswered">
+                        <i class="fas fa-question-circle"></i> Chưa làm
+                    </button>
+                </div>
+                <div id="resultsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="./main.js"></script>
+</body>
+
+</html>
